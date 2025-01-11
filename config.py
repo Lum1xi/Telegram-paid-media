@@ -1,0 +1,2 @@
+TOKEN = "1231234:SAGNKSFE1234AHKSDFEA"
+send_time = 5*60 #in second
