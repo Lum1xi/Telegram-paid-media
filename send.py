@@ -2,7 +2,7 @@ import asyncio
 import shutil
 import os
 from aiogram import Bot, Dispatcher
-from aiogram.types import FSInputFile, InputPaidMediaPhoto
+from aiogram.types import FSInputFile, InputPaidMediaPhoto, InputPaidMediaVideo
 from config import TOKEN, photo_cost, channel
 
 async def send_media_to_usepictures():
@@ -12,7 +12,7 @@ async def send_media_to_usepictures():
 
         filepath = os.path.join(path, files[0])
         try:
-            shutil.move(filepath, "usepictures")  # Використовуємо shutil.move замість os.replace
+            shutil.move(filepath, "usepictures")
         except FileExistsError:
             print(f"File {filepath} already exists.")
         except PermissionError:
@@ -22,7 +22,7 @@ async def send_media_to_usepictures():
 
 
 async def send_message(bot):
-    file = get_pictures()
+    file = get_media()
     if file is None:
         print("No media found to send.")
         return
@@ -33,7 +33,7 @@ async def send_message(bot):
     except Exception as e:
         print(f"Failed to send photo: {e}")
 
-def get_pictures():
+def get_media():
     try:
         for path, _, files in os.walk("pictures"):
             if not files:
@@ -41,9 +41,11 @@ def get_pictures():
 
             filepath = os.path.join(path, files[0])
             print(f"Found file: {filepath}")
-
-            # Повертаємо об'єкт InputPaidMediaPhoto
-            return [InputPaidMediaPhoto(media=FSInputFile(filepath))]
+            filetype = files[0].split('.')[-1]
+            if filetype in ["png", "jpg", "jpeg"]:
+                return [InputPaidMediaPhoto(media=FSInputFile(filepath))]
+            else:
+                return [InputPaidMediaVideo(media=FSInputFile(filepath))]
 
         raise FileNotFoundError("'pictures' directory does not contain any files.")
 
@@ -55,11 +57,4 @@ async def send():
     async with Bot(token=TOKEN) as bot:
         await send_message(bot)
 
-def run_bot():
-    try:
-        asyncio.run(send())
-    except Exception as e:
-        print(f"Error encountered: {e}")
 
-if __name__ == "__main__":
-    run_bot()
